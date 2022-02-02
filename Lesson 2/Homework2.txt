@@ -1,0 +1,87 @@
+/*1 a)	Извлечь все столбцы из таблицы Sales.SalesTerritory.*/
+
+SELECT *
+FROM [Sales].[SalesTerritory];
+
+
+
+SELECT [TerritoryID]
+      ,[Name]
+      ,[CountryRegionCode]
+      ,[Group]
+      ,[SalesYTD]
+      ,[SalesLastYear]
+      ,[CostYTD]
+      ,[CostLastYear]
+      ,[rowguid]
+      ,[ModifiedDate]
+FROM [Sales].[SalesTerritory];
+
+
+/*1 b)	Извлечь столбцы TerritoryID и Name из таблицы Sales.SalesTerritory.*/
+
+SELECT TerritoryID, Name
+FROM [Sales].[SalesTerritory];
+
+
+/*1 c)	Найдите все данные, которые существуют для людей из Person.Person с LastName = ‘Norman’.*/
+
+SELECT *
+FROM [Person].[Person]
+WHERE [LastName] = 'Norman';
+
+
+/*1 d)	Найдите все строки из Person.Person, где EmailPromotion не равен 2. */
+
+SELECT *
+FROM [Person].[Person]
+WHERE [EmailPromotion] !=2;
+
+
+/*3. Какие ещё агрегатные функции существуют в языке T-SQL? Приведите несколько примеров.
+
+VARP, STDEV, VAR, GROUPING, CHECKSUM_AGG */
+
+
+/*4 a)	Сколько уникальных PersonType существует для людей из Person.Person 
+с LastName начинающиеся с буквы М или не содержащий 1 в EmailPromotion.
+ОТВЕТ: 6 */
+
+SELECT COUNT ( DISTINCT [PersonType]) AS CountUniquePersonType
+FROM [Person].[Person] 
+WHERE [LastName] LIKE 'M%'
+   OR [EmailPromotion] NOT LIKE '%1%';
+
+
+/*4 b)	Вывести первых 3 специальных предложений из Sales.SpecialOffer 
+с наибольшими DiscountPct, которые начинали действовать с 2013-01-01 по 2014-01-01.*/
+
+
+SELECT TOP 3 WITH TIES *
+FROM [Sales].[SpecialOffer]
+WHERE [ModifiedDate] BETWEEN '2013-01-01' AND '2014-01-01'
+ORDER BY [DiscountPct] DESC;
+
+
+/*4 c)	Найти самый минимальный вес и самый максимальный размер продукта из Production.Product.*/
+
+SELECT MIN([Weight]) AS MinWeight
+      ,MAX([Size]) AS MaxSize
+FROM [Production].[Product];
+
+
+/*4 d)	Найти самый минимальный вес и самый максимальный размер продукта 
+для каждой подкатегории ProductSubcategoryID из Production.Product. */
+
+SELECT [ProductSubcategoryID], MIN([Weight]) AS MinWeight, MAX([Size]) AS MaxSize
+FROM [Production].[Product]
+GROUP BY [ProductSubcategoryID];
+
+
+/*4 e)	Найти самый минимальный вес и самый максимальный размер продукта 
+для каждой подкатегории ProductSubcategoryID из Production.Product, где цвет продукта определен(Color).*/
+
+SELECT [ProductSubcategoryID], MIN([Weight]) AS MinWeight, MAX([Size]) AS MaxSize
+FROM [Production].[Product]
+WHERE Color IS NOT NULL
+GROUP BY [ProductSubcategoryID];
