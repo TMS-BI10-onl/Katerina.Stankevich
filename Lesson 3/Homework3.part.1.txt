@@ -1,0 +1,84 @@
+/*a)	Вывести список цен в виде текстового комментария, основанного на диапазоне цен для продукта:
+a.	StandardCost равен 0 или не определен – ‘Not for sale’  
+b.	StandardCost больше 0, но меньше 100 – ‘<$100’ 
+c.	StandardCost больше или равно 100, но меньше 500 - ‘ <$500' 
+d.	Иначе - ‘ >= $500'
+Вывести имя продукта и новое поле PriceRange.*/
+
+SELECT DISTINCT name, 
+CASE WHEN StandardCost IN (0, NULL) THEN 'Not for sale'
+     WHEN StandardCost < 100  THEN '<$100'
+     WHEN StandardCost < 500  THEN '<$500'
+	 ELSE '>= $500'
+	 END PriceRange
+FROM AdventureWorks2017.Production.Product;
+
+
+/*Найти ProductID, BusinessEntityID и имя поставщика продукции из Purchasing.ProductVendor и Purchasing.Vendor, 
+где StandardPrice больше $10. 
+Также в имени вендора должна присутствовать (вне зависимости от положения) буква X или имя должно начинаться на букву N.*/
+
+SELECT p.[ProductID], p. [BusinessEntityID], pv.[Name]
+FROM Purchasing.ProductVendor p
+     JOIN Purchasing.Vendor pv
+     ON p. [BusinessEntityID]=pv.[BusinessEntityID]
+WHERE p.[StandardPrice] > 10
+     AND (pv.[Name] LIKE '%x%'
+     OR pv.[Name] LIKE'N%');
+
+
+/*c)	Найти имена всех вендоров, продукция которых не продавалась за всё время.*/
+
+SELECT pv.[Name]
+FROM Purchasing.Vendor pv
+     LEFT JOIN Purchasing.ProductVendor p
+     ON pv. [BusinessEntityID]=p.[BusinessEntityID]
+WHERE p.[BusinessEntityID] IS NULL;
+
+/*3. a)	Найдите производителей, препараты которых не продавались в 2019 году.*/
+
+SELECT Фп. Название AS Название_производителя
+FROM Фирмы-производители Фп
+     LEFT JOIN Фармпрепараты Ф
+     ON Фп.id = Ф.id фирмы
+     LEFT JOIN Продажи П
+     ON Ф.id=П.id фармпрепарата
+     JOIN Кассовые чеки Кч
+     ON П.id чека=Кч.id
+WHERE YEAR(Кч.Дата)=2019
+    AND П.id чека IS NULL;
+
+
+/*b)	Выведите увеличенную в 2 раза цену препаратов типа А. */
+
+SELECT Ф.Название AS Название_фармпрепарата, Ф.Цена*2 AS Удвоенная_цена
+FROM Фармпрепараты Ф
+     JOIN Типы фармпрепаратов Тф
+     ON Ф.id типа = Тф.id
+WHERE Тф.Тип LIKE 'A'
+
+
+/*c)	Найдите производителей и кол-во фармпрепаратов для каждого из них, где препарат не относится к типу А.*/
+
+SELECT Фп. Название, count (Distinct ф.Название) as КоличествоПрепаратов
+FROM Фирмы-производители Фп
+     JOIN Фармпрепараты Ф
+     ON Фп.id = Ф.id фирмы
+     JOIN Типы фармпрепаратов Тф
+     ON Ф.id типа = Тф.id
+WHERE Тф.Тип NOT LIKE A
+GROUP BY Фп. Название;
+
+
+/*Вывести название аптеки и названия фармпрепаратов, которые в ней продавались по субботам.*/
+
+SELECT Ап.Название AS Название_аптеки, Ф.Название AS Название_фармпрепарата
+FROM Аптечные пункты Ап
+     JOIN Продажи П
+     ON Ап.id = П.id аптечного пункта
+     JOIN Фармпрепараты Ф
+     ON П.id Фармпрепарата = Ф.id
+     JOIN Кассовые чеки Кч
+     ON П id.чека = Кч.id
+WHERE DATEPART (weekday, Кч.Дата)=6
+ORDER BY Ап.Название, Ф.Название
