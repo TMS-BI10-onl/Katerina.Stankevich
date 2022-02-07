@@ -1,0 +1,23 @@
+Well done!
+
+1.
+a) -0.5
+"In" is not woring with nulls.
+
+3.
+a) -1
+Great idea, but unfortunately it's not helping :( The problem is in inner join between sales and receipts. Rows won't be joined if receipt_id is null and that is what you're wanting to filter.
+Correct answer:
+
+SELECT Название
+FROM Фирмы-производители 
+WHERE id NOT IN (SELECT преп.id_фирмы
+				FROM Фармпрепараты преп
+						JOIN Продажи прод ON преп.id=прод.id_фармпрепарата
+						JOIN Кассовые_чеки чек ON прод.id_чека=чек.id 
+				WHERE YEAR(Дата)=2019)
+c) -0.25
+"Like" requires strings. You needed to use 'A'.
+
+
+Mark: 7-2=5
