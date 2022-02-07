@@ -1,0 +1,98 @@
+/*1. Вывести текущую дату и время, с учетом смещения часового пояса.*/
+
+SELECT SYSDATETIMEOFFSET() 
+
+/*2.Из таблицы [Purchasing].[PurchaseOrderDetail] вывести [PurchaseOrderID] и год, 
+в котором было погашение заказа */
+
+SELECT [PurchaseOrderID], DATENAME (year, [DueDate]) as Year
+FROM [Purchasing].[PurchaseOrderDetail]
+
+/*3. Вывести [ProductID] и последнюю цену тех продутов, которые в последний раз 
+были получены в 2011 году */
+
+SELECT [ProductID], [LastReceiptCost]
+FROM [Purchasing].[ProductVendor]
+WHERE DATEPART (YEAR, [LastReceiptDate])=2011
+
+/*4. Вывести  ID товаров из таблицы [Production].[WorkOrder], которые заказывались в феврале, 
+и расположить их по возрастанию */
+
+SELECT DISTINCT [ProductID]
+FROM [Production].[WorkOrder]
+WHERE MONTH ([StartDate])=2
+order by [ProductID]
+
+/*5. Определить кол-во дней выполнения заказа из таблицы [Production].[WorkOrder]*/
+
+SELECT [WorkOrderID], [ProductID], [StartDate], [EndDate], DATEDIFF ( day , [StartDate] , [EndDate]) AS Days
+FROM [Production].[WorkOrder]
+
+/*6. Вывести список [CountryRegionCode], проставив напротив регионов с валютой 
+EUR, USD - 'EUR, USD', напротив остальных регионов - 'other currency'*/
+
+SELECT[CountryRegionCode], IIF ([CurrencyCode] ='EUR', 'EUR', 
+                           IIF([CurrencyCode] ='USD','USD' ,'other currency')) as Currency
+FROM [Sales].[CountryRegionCurrency]
+
+/*7.Вывести таблицу [Production].[WorkOrder] с измененным форматом даты на 'dd mm yy'  */
+
+SELECT [WorkOrderID]
+	,[ProductID]
+	,[OrderQty]
+	,[StockedQty]
+	,[ScrappedQty]
+	,CONVERT (nvarchar, [StartDate], 6) AS StartDate
+	,CONVERT (nvarchar, [EndDate], 6) AS EndDate
+	,CONVERT (nvarchar, [DueDate], 6) AS DueDate
+FROM [Production].[WorkOrder]
+
+/*8.Вывести среднюю цену продуктов округленную до 2-х знаков*/
+
+SELECT round(AVG([StandardCost]),2) AS avg_cost 
+FROM [Production].[Product];
+
+/*9.Вывести для продуктов id, который будет состоять из 
+[ProductCategoryID] и [ProductSubcategoryID], разделенных между собой точкой*/
+
+SELECT [Name] ,CONCAT([ProductCategoryID],'.',[ProductSubcategoryID]) AS NewID
+FROM [Production].[ProductSubcategory]
+
+/*10.Вывести фамилии из таблицы [Person].[Address] PostalCode в обратном порядке*/
+
+SELECT [PostalCode], REVERSE([PostalCode]) AS Reverse 
+FROM [Person].[Address]
+
+/*11 Вывести последние два символа кода владельца*/
+
+SELECT *, RIGHT([Owner],2) as Sh_Owner
+FROM [Production].[Document]
+
+
+/*12. Заменить в телефонном номере дефис на пробел*/
+
+SELECT [BusinessEntityID], REPLACE([PhoneNumber], '-', ' ') as PhoneNumber 
+FROM [Person].[PersonPhone]
+
+
+/*13. Заменить начиная с 5 символа в [TransactionID] на '...'*/
+
+SELECT *, STUFF([TransactionID], 5, 2, '...') AS Sh_TransactionID
+FROM [Production].[TransactionHistory]
+
+
+/*14. Преобразовать колонку [rowguid] таким образом, чтобы буквы стали строчными*/
+
+SELECT [ProductID]
+	,[LocationID]
+	,[Shelf]
+	,[Bin]
+	,[Quantity]
+	,LOWER ([rowguid]) AS rowguid
+FROM [Production].[ProductInventory]
+
+/*15 Вывести данные по людям, имя у которых имя начинается на 'B' 
+и записать их заглавными буквами*/
+SELECT *, UPPER ([FirstName]) AS FName
+FROM [Person].[Person]
+WHERE [FirstName] LIKE 'B%'
