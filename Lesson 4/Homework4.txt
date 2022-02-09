@@ -1,0 +1,145 @@
+/*3. При каких значениях оконные функции Row Number, Rank и Dense Rank вернут одинаковый результат?*/
+
+/*Ответ: Они вернут одинаковый результат, если те данные, по которым будет производиться ранжирование, 
+не будут иметь повторяющихся значений.*/
+
+
+/*4.a)	Изучите данные в таблице Production.UnitMeasure. */
+	
+SELECT * 
+FROM [Production].[UnitMeasure]
+
+/*Проверьте, есть ли здесь UnitMeasureCode, начинающиеся на букву ‘Т’. Сколько всего различных кодов здесь есть? */
+
+SELECT [UnitMeasureCode]
+FROM [Production].[UnitMeasure]
+WHERE [UnitMeasureCode] LIKE 'T%'
+
+--Ответ: НЕТ   	 
+		 
+
+/*Сколько всего различных кодов здесь есть? */
+
+SELECT COUNT(DISTINCT [UnitMeasureCode]) AS COUNT_UnitMeasureCode
+FROM [Production].[UnitMeasure]
+	
+	--Ответ: 38
+
+	
+/*Вставьте следующий набор данных в таблицу:
+•	TT1, Test 1, 9 сентября 2020
+•	TT2, Test 2, getdate()*/
+
+INSERT INTO [Production].[UnitMeasure] ([UnitMeasureCode],[Name],[ModifiedDate])
+VALUES ('TT1', 'Test 1', CAST ('09.09.2020' as datetime))
+
+INSERT INTO [Production].[UnitMeasure] ([UnitMeasureCode],[Name],[ModifiedDate])
+VALUES ('TT2', 'Test 2', getdate())
+
+
+/*Проверьте теперь, есть ли здесь UnitMeasureCode, начинающиеся на букву ‘Т’. */
+
+SELECT [UnitMeasureCode]
+FROM [Production].[UnitMeasure]
+WHERE [UnitMeasureCode] LIKE 'T%'
+
+	--Ответ: ДА.
+
+/*b)	Теперь загрузите вставленный набор в новую, не существующую таблицу Production.UnitMeasureTest. */
+
+SELECT [UnitMeasureCode], [Name], [ModifiedDate]
+INTO [dbo].[Production.UnitMeasureTest]
+FROM [Production].[UnitMeasure] 
+WHERE [UnitMeasureCode] LIKE 'T%'
+
+/*Догрузите сюда информацию из Production.UnitMeasure по UnitMeasureCode = ‘CAN’.*/
+
+INSERT INTO [dbo].[Production.UnitMeasureTest] ([UnitMeasureCode], [Name], [ModifiedDate])
+SELECT *
+FROM [Production].[UnitMeasure]
+WHERE [UnitMeasureCode] = 'CAN'
+
+/*Посмотрите результат в отсортированном виде по коду. */
+
+SELECT *
+FROM [dbo].[Production.UnitMeasureTest]
+ORDER BY [UnitMeasureCode]
+
+
+/*c)	Измените UnitMeasureCode для всего набора из Production.UnitMeasureTest на ‘TTT’.*/
+
+UPDATE [dbo].[Production.UnitMeasureTest]
+SET  [UnitMeasureCode] = 'TTT'
+
+/*d)	Удалите все строки из Production.UnitMeasureTest.*/
+
+DELETE
+FROM [dbo].[Production.UnitMeasureTest]
+
+
+
+/*e)	Найдите информацию из Sales.SalesOrderDetail по заказам 43659,43664.  */
+
+SELECT * 
+FROM [Sales].[SalesOrderDetail]
+WHERE [SalesOrderID] IN (43659,43664)
+
+/*С помощью оконных функций MAX, MIN, AVG найдем агрегаты по LineTotal для каждого SalesOrderID.*/
+
+SELECT [SalesOrderID]
+     ,MAX([LineTotal]) OVER (PARTITION BY SalesOrderID) AS 'MaxTotal'
+	 ,MIN([LineTotal]) OVER (PARTITION BY SalesOrderID) AS 'MinTotal'
+	 ,AVG([LineTotal]) OVER (PARTITION BY SalesOrderID) AS 'AvgTotal'
+FROM [Sales].[SalesOrderDetail]
+ WHERE [SalesOrderID] IN (43659,43664)
+
+	   
+/* f)	Изучите данные в объекте Sales.vSalesPerson. */
+		
+SELECT * 
+FROM Sales.vSalesPerson
+
+/*Создайте рейтинг cреди продавцов на основе годовых продаж SalesYTD, используя ранжирующую оконную функцию.
+Добавьте поле Login, состоящий из 3 первых букв фамилии в верхнем регистре + ‘login’ + TerritoryGroup (Null заменить на пустое значение).
+Кто возглавляет рейтинг? А кто возглавлял рейтинг в прошлом году (SalesLastYear). */
+	
+SELECT [FirstName], [LastName], [SalesYTD]
+	,CONCAT (UPPER(LEFT([FirstName], 3)), 'login', TerritoryGroup) AS 'Login'
+	,DENSE_RANK() OVER (ORDER BY [SalesYTD] DESC) AS "Dense Rank"
+FROM Sales.vSalesPerson
+
+--Ответ: Рейтинг возглавляет Linda Mitchell
+	
+SELECT [FirstName], [LastName], [SalesLastYear]
+	,CONCAT (UPPER(LEFT([FirstName], 3)), 'login', TerritoryGroup) AS 'Login'
+	,DENSE_RANK() OVER (ORDER BY [SalesLastYear] DESC) AS "Dense Rank"
+FROM Sales.vSalesPerson
+
+--Ответ: За прошлый год рейтинг возглавляет Ranjit Varkey Chudukatil
+	
+
+/*5.	 Найдите значения count(1), count(name), count(id), count(*) для следующей таблицы:
+
+Id(PK)	Name		DepName
+1	    null	  A
+2	    null         null
+3	     A		  C
+4	     B		  C*/
+
+/*count(1)   count(name)   count(id)  count(*)
+    1            NULL          1         1
+    1		 NULL          1         1
+    1		 1             1         1
+    1		 1             1         1
+	
+Ответ: 
+count(1) = 4
+count(name) = 2
+count(id) = 4
+count(*) = 4
+
+В задании не было(для себя): 
+count(DepName) = 3
+count(distinct id)=4
+count (distinct(Name)=2
+count (distinct(DepName)=2	*/
