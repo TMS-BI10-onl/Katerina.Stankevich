@@ -1,0 +1,84 @@
+/*6.	В базе данных AdventureWorks2017 создать таблицу Patients для ведения наблюдений за температурой пациентов больницы. 
+Таблица должна содержать поля:
+ID – числовое поле. Авто заполняется.
+FirstName – имя пациента.
+LastName – фамилия пациента.
+SSN – уникальный идентификатор пациента.
+Email – электронная почта пациента. Формируется по следующему правилу: первая большая буква FirstName
++ маленькие 3 буквы LastName + @mail.com (например, Akli@mail.com). Полезная ссылка здесь. 
+Temp – температура пациента.
+CreatedDate — дата измерений. */
+
+CREATE TABLE Patients
+(
+	ID          INT IDENTITY(1,1) PRIMARY KEY,
+	FirstName   NVARCHAR (50),
+	LastName    NVARCHAR (50),
+	SSN         uniqueidentifier NOT NULL DEFAULT newid(), 
+	Email       AS (UPPER(LEFT(FirstName,1)) + LOWER(LEFT(LastName,3)) + '@mail.com'),
+	Temp        DEC (3,1) NOT NULL,
+	CreatedDate DATE DEFAULT getdate()
+);
+
+/*7.	Добавить в таблицу несколько произвольных записей. */
+
+INSERT INTO Patients (FirstName, LastName, Temp)
+VALUES ('Tom', 'Hanck', 37.5), 
+       ('Peter', 'Adams', 36.6),
+	   ('Alex', 'Cat', 38.2),
+	   ('Luk', 'Allen', 37.0)
+
+/*8.	Добавить поле TempType со следующими значениями ‘< 0°C’,  ‘> 0°C’ на основе значений из поля Temp 
+( используйте ALTER TABLE 
+ADD column AS ). Посмотрите на данные, которые получились.*/
+
+--1 способ
+ALTER TABLE Patients
+ADD TempType AS (IIF(Temp > 0, '> 0°C', '< 0°C'))
+
+--2 способ
+ALTER TABLE Patients
+ADD TempType AS (CASE WHEN Temp > 0 THEN '> 0°C' ELSE '< 0°C' END)
+
+
+/*9.	Создать представление Patients_v, показывающее температуру в градусах Фаренгейта (°F = °Cx9/5 + 32)*/
+
+CREATE VIEW dbo.Patients_v
+AS
+SELECT ID, FirstName, LastName, SSN, Email, CreatedDate, CONVERT(FLOAT, Temp*9/5+32) AS 'Temp_°F'
+FROM Patients
+
+--Вызов представления:
+
+SELECT *
+FROM dbo.Patients_v
+
+
+/*10.	Создать функцию, которая возвращает температуру в градусах Фаренгейта, при подаче на вход градусы в Цельсиях.*/
+
+CREATE FUNCTION udfPatientsTemp_F 
+(
+@Temp_C DEC (10,2)
+)
+RETURNS DEC(10,2)
+AS
+BEGIN
+	RETURN @Temp_C*9/5+32
+END;
+
+--Вызов функции:
+
+SELECT dbo.udfPatientsTemp_F (36.6) Temp_F
+
+/*11.	Перепишите решение задачи g из прошлого дз с использованием переменной, максимально упрощая select.*/
+
+
+DECLARE @firstdayofmonth DATE
+SET @firstdayofmonth = DATEADD(DAY, 1, EOMONTH(GETDATE(), -1))
+
+SELECT @firstdayofmonth AS first_day_of_month,
+    DATEPART(DW, @firstdayofmonth) AS week_day_number,
+    CASE WHEN DATEPART(DW, @firstdayofmonth)<=5 
+        THEN @firstdayofmonth
+    ELSE DATEADD(DAY, (7-DATEPART(DW, @firstdayofmonth)+1), @firstdayofmonth) 
+    END AS first_working_day
