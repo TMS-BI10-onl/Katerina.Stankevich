@@ -1,0 +1,10 @@
+Well done!
+
+6. -0.25
+We haven't learnt any constraints yet.
+
+11.-0.25
+It's not the biggest replacement. Why don't we use DATEPART(DW, @firstdayofmonth) as a variable?
+
+Mark: 10
+Test mark: 10
