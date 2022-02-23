@@ -1,0 +1,104 @@
+/*1.	Создайте вашу базу данных: таблицы, ограничения, ключи.*/
+
+CREATE DATABASE TravelAgency
+GO
+USE TravelAgency
+
+GO
+
+CREATE TABLE Tours
+(
+	[IDTour] INT IDENTITY(1,1)
+	,[TourType] NVARCHAR (50) 
+	,[HotelName] NVARCHAR (30) NOT NULL
+	,[HotelRating] INT 
+	,[Country] NVARCHAR (30) NOT NULL
+	,[City] NVARCHAR (30) 
+	,[Address] NVARCHAR (50) 
+	,[CateringType] NVARCHAR (30)
+	,[Transfer] NVARCHAR (10)
+	,[MaxQuantity] INT 
+	,[TransportType] NVARCHAR (30)
+	,[TransportClass] NVARCHAR (30)
+	CONSTRAINT PK_TravelAgency_IDTour PRIMARY KEY ([IDTour])
+)
+
+GO
+
+CREATE TABLE Managers
+(
+	 [IDManager] INT IDENTITY(1,1)
+	,[FirstName] NVARCHAR (50) NOT NULL
+	,[LastName] NVARCHAR (50) NOT NULL
+	,[Position] NVARCHAR (30)
+	,[Phone] NVARCHAR (20)
+	,[Email] NVARCHAR (50)
+	CONSTRAINT PK_TravelAgency_IDManager PRIMARY KEY ([IDManager])
+)
+
+GO  
+  
+CREATE TABLE Clients
+(
+	[IDClient] INT IDENTITY(1,1)
+	,[IdentificationNumber] NVARCHAR (30) NOT NULL
+	,[FirstName] NVARCHAR (50) NOT NULL
+	,[LastName] NVARCHAR (50) NOT NULL
+	,[BirthDate] DATE
+	,[Gender] NVARCHAR (10)
+	,[Phone] NVARCHAR (20)
+	,[Email] NVARCHAR (50)
+	CONSTRAINT PK_TravelAgency_IDClient PRIMARY KEY ([IDClient]),
+	CONSTRAINT UQ_TravelAgency_IdentificationNumber UNIQUE ([IdentificationNumber])
+)
+
+GO
+
+CREATE TABLE Offices
+(
+	[IDOffice] INT IDENTITY(1,1)
+	,[City] NVARCHAR (30) NOT NULL
+	,[Address] NVARCHAR (50)
+	CONSTRAINT PK_TravelAgency_IDOffices PRIMARY KEY ([IDOffice])
+)
+
+GO
+
+CREATE TABLE Sales
+(
+	[Sales_id] INT IDENTITY(1,1)
+	,[ContractNumber] NVARCHAR (30) NOT NULL
+	,[DateSales] DATE NOT NULL
+	,[IDManager] INT NOT NULL
+	,[IDTour] INT NOT NULL
+	,[IDClient] INT NOT NULL
+	,[IDOffices] INT NOT NULL
+	,[Costs] MONEY
+	,[SellingPrice] SMALLMONEY 
+	,[DiscountRate] INT
+	,[TourCapacity] INT NOT NULL
+	,[TourStartDate] DATE NOT NULL
+	,[TourFinishDate] DATE NOT NULL
+	CONSTRAINT PK_TravelAgency_Sales_id PRIMARY KEY ([Sales_id]),
+	CONSTRAINT UQ_TravelAgency_ContractNumber UNIQUE ([ContractNumber]),
+	CONSTRAINT FK_TravelAgency_IDManager FOREIGN KEY ([IDManager]) REFERENCES Managers ([IDManager]),
+	CONSTRAINT FK_TravelAgency_IDTour FOREIGN KEY ([IDTour]) REFERENCES Tours ([IDTour]),
+	CONSTRAINT FK_TravelAgency_IDClient FOREIGN KEY ([IDClient]) REFERENCES Clients ([IDClient]),
+	CONSTRAINT FK_TravelAgency_IDOffices FOREIGN KEY ([IDOffice]) REFERENCES Offices ([IDOffice])
+)
+
+
+/*2.	Напишите скрипт для получения 1 млн человек с различными именами и фамилиями.*/
+
+USE [TravelAgency]
+GO
+SELECT TOP 1000000 p1.[First_Name], p2.[Last_Name]
+FROM [People] p1
+CROSS JOIN [People] p2
+
+*/3. Обобщенные табличные выражения используются для повышения наглядности в запросах. 
+Он позволяет заранее сформировать внутренний подзапрос (временную таблицу, которая будет храниться в рамках одного запроса), 
+а далее позволяет обращаться к данному подзапросу из основного запроса, указывая только его псевдоним. 
+Можем использовать его, например, в сложных запросах, рекурсивных запросах или использовать вместо view, когда хранить его не требуется. 
+В сравнении с подзапросом, если нам нужно несколько раз ссылаться на результат подзапроса, то нужно каждый раз прописывать код этого подзапроса, 
+а обобщенное табличное выражение позволяет ссылаться на временную таблицу сколько угодно раз, указывая только ее псевдоним. */
