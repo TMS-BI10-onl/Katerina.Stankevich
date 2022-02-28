@@ -1,0 +1,33 @@
+/*1) Найдите людей и их номера телефонов, код города которых начинается на  4 и заканчивается на 5.
+( таблицы Person.PersonPhone, Person.Person) */
+
+SELECT p.[BusinessEntityID], p.[FirstName], p.[LastName], pp.[PhoneNumber]
+FROM [Person].[Person] p
+JOIN [Person].[PersonPhone] pp
+ON p.[BusinessEntityID] = pp.[BusinessEntityID]
+WHERE [PhoneNumber] LIKE '4__%' AND [PhoneNumber] LIKE '__5%'
+
+
+/*2) Отнести каждого человека из [HumanResources].[Employee] в свою возрастную категорию:
+Adolescence: 17-20
+Adults: 21-59
+Elderly: 60-75
+Senile: 76-90*/
+
+SELECT p.[BusinessEntityID], p.[FirstName], p.[LastName], h.[BirthDate], DATEDIFF(YEAR, [BirthDate], GETDATE()) AS Age,
+CASE WHEN DATEDIFF(YEAR, [BirthDate], GETDATE()) >=17 AND DATEDIFF(YEAR, [BirthDate], GETDATE()) <=20 THEN 'Adolescence'
+WHEN DATEDIFF(YEAR, [BirthDate], GETDATE()) >=21 AND DATEDIFF(YEAR, [BirthDate], GETDATE()) <=59 THEN 'Adults'
+WHEN DATEDIFF(YEAR, [BirthDate], GETDATE()) >=60 AND DATEDIFF(YEAR, [BirthDate], GETDATE()) <=75 THEN 'Elderly'
+WHEN DATEDIFF(YEAR, [BirthDate], GETDATE()) >=76 AND DATEDIFF(YEAR, [BirthDate], GETDATE()) <=90 THEN 'Senile'
+END AgeCategory
+FROM [Person].[Person] p
+JOIN [HumanResources].[Employee] h
+ON p.[BusinessEntityID]= h.[BusinessEntityID]
+
+/*3) Вывести самый дорогой продукт для каждого цвета из [Production].[Product]*/
+
+SELECT p1. Color, p1. Name, p1. [StandardCost]
+FROM [Production].[Product] p1
+JOIN (SELECT Color, MAX([StandardCost]) AS max_cost FROM [Production].[Product] GROUP BY Color) p2
+ON p1. Color = p2. Color
+WHERE [StandardCost] = p2. max_cost
