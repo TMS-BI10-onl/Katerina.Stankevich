@@ -1,0 +1,59 @@
+/*1.	Написать запрос на добавление в таблицу manufacturer нового производителя HP из Америки.*/
+
+INSERT INTO manufacturer
+VALUES ('HP', 4);
+
+/*2.	Написать запрос, благодаря которому возраст пользователя Андрей в таблице user уменьшится в 3 раза.*/
+
+UPDATE user
+SET age = ROUND (age/3, 0)
+WHERE name = 'Андрей'
+
+/*3.	Найти название продукта с максимальной ценой.*/
+
+SELECT name, price
+FROM (SELECT name, price, RANK () OVER (ORDER BY price DESC) AS rnk FROM product) t
+WHERE rnk = 1
+
+
+SELECT name, price
+FROM product
+WHERE price = (SELECT MAX(price) AS max_price
+				FROM product) t
+
+
+SELECT name, price
+FROM 
+(
+	SELECT name, price, MAX(price) OVER () AS max_price 
+	FROM product
+) t
+WHERE price = max_price
+
+
+
+SELECT TOP 1 WITH TIES name, price
+FROM product
+ORDER BY price DESC
+
+
+/*4.	Написать запрос на выборку всех пользователей с телефонами, начинающимися на 3 и заканчивающимися на 4, либо с возрастом > 35.*/
+
+SELECT u.name, p.name
+FROM user u
+	LEFT JOIN phone p
+	ON u.id = p.user_id
+WHERE p.name LIKE '_3%4' OR u.age >35
+
+
+/*5.	Найти топ 5 пользователей, кто купил больше всего продуктов.*/
+
+
+SELECT TOP 5 WITH TIES u.name, cnt
+FROM 
+(
+	SELECT user_id, count (1) AS cnt FROM order GROUP BY user_id
+) t
+LEFT JOIN user u
+	ON t.user_id = u.user_id
+ORDER BY cnt DESC
