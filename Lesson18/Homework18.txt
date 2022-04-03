@@ -1,0 +1,73 @@
+/*1.	Покажите всех менеджеров, которые имеют в подчинении больше 6-ти сотрудников.*/
+
+SELECT M.[MANAGER_ID], E.[FIRST_NAME], E.[LAST_NAME], COUNT(1) AS cnt
+FROM [EMPLOYEES] M LEFT JOIN [EMPLOYEES] E ON M.[MANAGER_ID]=E.[EMPLOYEE_ID]
+GROUP BY M.[MANAGER_ID], E.[FIRST_NAME], E.[LAST_NAME]
+HAVING COUNT(1) >6
+
+/*2.	Вывести min и max зарплату с вычетом commission_pct для каждого департамента. (commission_pct на базе указывается в процентах). */
+
+SELECT e.[DEPARTMENT_ID], [DEPARTMENT_NAME], 
+	   MIN([SALARY]- ([SALARY]*[COMMISSION_PCT]/100)) as minSalary, 
+	   MAX([SALARY]- ([SALARY]*[COMMISSION_PCT]/100)) as maxSalary
+FROM [EMPLOYEES] e LEFT JOIN [DEPERTMENTS] d ON e.[DEPARTMENT_ID] = d.[DEPARTMENT_ID]
+GROUP BY e.[DEPARTMENT_ID], [DEPARTMENT_NAME]
+
+/*3.	Вывести только регион, где работают больше всего людей.*/
+
+SELECT TOP 1 WITH TIES [REGION_NAME]
+FROM [EMPLOYEES] e LEFT JOIN DEPERTMENTS d ON e.[DEPARTMENT_ID] = d.[DEPARTMENT_ID]
+		           LEFT JOIN LOCATIONS l ON d.[LOCATION_ID] = l.[LOCATION_ID]
+				   LEFT JOIN COUNTRIES c ON l.[COUNTRY_ID] = c.[COUNTRY_ID]
+				   LEFT JOIN REGIONS r ON c.[REGION_ID] = r.[REGION_ID]
+GROUP BY [REGION_NAME]
+ORDER BY COUNT (1) DESC
+
+/*4.	Найдите разницу в процентах между средней зп по каждому департаменту 
+от общей средней (по всем департаментам).*/
+
+SELECT e.[DEPARTMENT_ID], [DEPARTMENT_NAME], 
+       (AVG ([SALARY])/(SELECT AVG ([SALARY]) FROM [EMPLOYEES])-1)*100 AS [difference]
+FROM [EMPLOYEES] e LEFT JOIN [DEPERTMENTS] d ON e.[DEPARTMENT_ID] = d.[DEPARTMENT_ID]
+GROUP BY e.[DEPARTMENT_ID], [DEPARTMENT_NAME]
+
+
+/*5.	Найдите людей, кто проработал больше, чем 10 лет в одном департаменте. */
+
+/*1 решение. Если предположить, что [EMPLOYEE_ID] в таблице [JOB_HISTORY] уникальный, 
+т.е. при переводе в другой департамент работнику присваивается новый [EMPLOYEE_ID]*/
+
+SELECT j.[EMPLOYEE_ID], j.[DEPARTMENT_ID], [FIRST_NAME], [LAST_NAME]
+FROM [JOB_HISTORY] j LEFT JOIN [EMPLOYEES] e ON e.[EMPLOYEE_ID]=j.[EMPLOYEE_ID]
+WHERE DATEDIFF(YEAR, [START_DATE], ISNULL([END_DATE], GETDATE())) > 10
+
+
+/*2 решение. Если предположить, что [EMPLOYEE_ID] в таблице [JOB_HISTORY] не уникальный, 
+т.е. в таблице [EMPLOYEES] всегда содержится только актуальная информация на текущий период,
+а в таблице [JOB_HISTORY] можно по этому работнику отследить все перемещения по департаментам и т.д..
+Тогда решение позволит просуммировать кол-во лет, если работник работал в одном отделе с перерывом
+(например, 5 лет в первом отделе, потом 3 года во втором, и опять 6 лет в первом).*/
+
+SELECT j.[EMPLOYEE_ID], j.[DEPARTMENT_ID], [FIRST_NAME], [LAST_NAME], SUM (j.cnt_Years) as cnt_Years
+FROM
+     (
+	   SELECT [EMPLOYEE_ID], [DEPARTMENT_ID],
+                  CASE WHEN END_DATE IS NOT NULL THEN DATEDIFF(YEAR, [START_DATE], END_DATE)
+                       WHEN END_DATE IS NULL THEN DATEDIFF(YEAR, [START_DATE], GETDATE())
+                       END cnt_Years
+           FROM [JOB_HISTORY]
+      ) j
+LEFT JOIN [EMPLOYEES] e ON e.[EMPLOYEE_ID]=j.[EMPLOYEE_ID]
+GROUP BY j.[EMPLOYEE_ID], j.[DEPARTMENT_ID], [FIRST_NAME], [LAST_NAME]
+HAVING  SUM (j.cnt_Years) >10
+
+
+/*6.	Найдите людей, кто занимает 5-10 место по размеру зарплаты.  */
+
+SELECT [EMPLOYEE_ID], [FIRST_NAME], [LAST_NAME], [SALARY], rnk
+FROM 
+	(
+	   SELECT [EMPLOYEE_ID], [FIRST_NAME], [LAST_NAME], [SALARY], RANK () OVER (ORDER BY [SALARY] DESC) as rnk 
+	   FROM [EMPLOYEES]
+	) t
+WHERE rnk BETWEEN 5 AND 10
