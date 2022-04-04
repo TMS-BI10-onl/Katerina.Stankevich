@@ -1,0 +1,13 @@
+Well done!
+
+1.-0.25
+e.firs_name returns name of the employee which is under this manager. You needed to use m.first_name.
+
+4. -0.75
+Can be solved better - with window functions.
+
+5. 
+Case conditions can be rewrite to DATEDIFF(year, start_date, ISNULL(end_date, GETDATE())).
+
+Mark: 9
+Test mark: 10
